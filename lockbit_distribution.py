@@ -75,6 +75,19 @@ def save_string_to_txt(file_name, string_data):
     with open(file_name, 'w', encoding='utf-8') as file:
         file.write(string_data)
 
+def remove_existing_header(filename):
+    data_list = csv_to_list(filename)
+
+    first_row = data_list[0] if data_list else []
+
+
+    expected_header = ['company name', 'country', 'description', 'sector']
+    if first_row == expected_header:
+        data_list.pop(0)
+
+    with open(filename, 'w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        writer.writerows(data_list)
 
 
 def add_header_to_csv(filename):
@@ -109,7 +122,7 @@ def main():
 
     while True:
         try:
-            comp_num = int(input("Enter the number of affected companies to obtain information (based on the order posted on the leak site)"))
+            comp_num = int(input("Enter the number of affected companies to obtain information (based on the order posted on the leak site) : \n"))
             break
         except ValueError:
             print("This is not an integer. Please enter it again.")
@@ -134,10 +147,9 @@ def main():
     sendMessage += 'Lockbit Victim List and gpt opnion\n\n'
 
     name_country_list = []
-
-    add_header_to_csv('companies_info.csv')
-
-    for i in range(1,comp_num):
+    
+    remove_existing_header('companies_info.csv')
+    for i in range(1,comp_num+1):
         url = driver.find_element("xpath", '/html/body/div[3]/div[1]/div/a['+str(i)+']/div[1]/div/div/div[1]').text   
         name_country_list.append([])
         ip_address = get_ip_from_url(url)
@@ -271,7 +283,7 @@ def main():
     plt.savefig("country_counts.png", dpi=300, bbox_inches='tight')
     
 
-
+    add_header_to_csv('companies_info.csv')
     
     get_update_api = f"http://api.telegram.org/bot{telegram_api_key}/getUpdates"
 
