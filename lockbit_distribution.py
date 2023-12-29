@@ -12,7 +12,7 @@ import seaborn as sns
 import ast
 import matplotlib
 
-# URL에서 IP 주소를 가져오기
+
 def get_ip_from_url(url):
     try:
         ip_address = socket.gethostbyname(url)
@@ -22,10 +22,10 @@ def get_ip_from_url(url):
         return None
 
 
-# IP 주소를 사용하여 국가 찾기
+
 def get_country_from_ip(ip_address):
     try:
-        reader = Reader('GeoLite2-Country.mmdb')  # MaxMind GeoLite2 데이터베이스 파일
+        reader = Reader('GeoLite2-Country.mmdb')  
         response = reader.country(ip_address)
         return response.country.name
     except Exception as e:
@@ -34,10 +34,10 @@ def get_country_from_ip(ip_address):
 
 
 def append_to_csv(filename, data):
-    # CSV 파일을 추가 모드로 열기
+
     with open(filename, 'a', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        # 데이터를 순회하며 한 줄씩 추가
+
         writer.writerows(data)
 
 def load_companies_from_csv(filename):
@@ -46,13 +46,13 @@ def load_companies_from_csv(filename):
         with open(filename, 'r', encoding='utf-8') as file:
             reader = csv.reader(file)
             for row in reader:
-                companies_in_csv.add(row[0])  # 가정: 첫 번째 열이 회사명
+                companies_in_csv.add(row[0])  
     except FileNotFoundError:
-        # 파일이 없을 경우 빈 세트 반환
+
         return companies_in_csv
     return companies_in_csv
 
-# CSV 파일에 없는 기업들만 담긴 새로운 리스트 생성
+
 def get_unique_companies(csv_filename, current_list):
     existing_companies = load_companies_from_csv(csv_filename)
     unique_companies = [company for company in current_list if company[0] not in existing_companies]
@@ -107,32 +107,37 @@ def main():
         else:
             print("You entered it incorrectly. Please enter it again. \n")
 
-
+    while True:
+        try:
+            comp_num = int(input("Enter the number of affected companies to obtain information (based on the order posted on the leak site)"))
+            break
+        except ValueError:
+            print("This is not an integer. Please enter it again.")
     
     
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--proxy-server=socks5://127.0.0.1:9050")
-    chrome_options.add_argument("--headless") # 이 옵션을 적용하면 크롬창 안보여요 
+    chrome_options.add_argument("--headless") 
 
     driver = webdriver.Chrome(options=chrome_options)
-# 첫 요청으로 쿠키를 획득
+
     url = "http://lockbitaptc2iq4atewz2ise62q63wfktyrl4qtwuk5qax262kgtzjqd.onion"
     driver.get(url)
-# 바로 파싱하면 페이지 특성상 찾을 수 없기에 먼저 릭사이트 내 다른 페이지로 이동
+
     url = "http://lockbitaptc2iq4atewz2ise62q63wfktyrl4qtwuk5qax262kgtzjqd.onion/conditions"
     driver.get(url)
-# 피해자를 나열한 페이지로 다시 이동
+
     url = "http://lockbitaptc2iq4atewz2ise62q63wfktyrl4qtwuk5qax262kgtzjqd.onion"
     driver.get(url)
     time.sleep(5)
     sendMessage = ''
     sendMessage += 'Lockbit Victim List and gpt opnion\n\n'
-# 빈 배열 선언
+
     name_country_list = []
 
     add_header_to_csv('companies_info.csv')
-# 피해자 명단을 파싱
-    for i in range(1,11):
+
+    for i in range(1,comp_num):
         url = driver.find_element("xpath", '/html/body/div[3]/div[1]/div/a['+str(i)+']/div[1]/div/div/div[1]').text   
         name_country_list.append([])
         ip_address = get_ip_from_url(url)
@@ -153,8 +158,7 @@ def main():
     name_country_list = get_unique_companies('companies_info.csv', name_country_list)
 
       
-# 가난해서 3개만 출력
-# 꼭 레포에 올릴때 api키 먼저 지우고 입력받고 돌아가게 수정하기
+
     sectors_name = ""
     for i in range(0,len(name_country_list)):
         if len(name_country_list[i][2]) > 10 or not("https://" in name_country_list[i][2]) :
@@ -185,15 +189,15 @@ def main():
     for i in range(0, len(companies_list)) :
         if companies_list[i][1] == "typo" :
             if companies_list[i][3].lower() == "null" :
-                sendMessage += "회사 명 : " + companies_list[i][0] + ", 회사 이름에 오타가 있거나 서버가 닫혀있습니다. \n"
+                sendMessage += "company name : " + companies_list[i][0] + ", There is a typo in the company name or the server is closed. \n\n"
             else :
-                sendMessage += "회사 명 : " + companies_list[i][0] + ", 회사 이름에 오타가 있거나 서버가 닫혀있지만 업종을 추정 하였습니다. 추정 업종 : " + companies_list[i][3] + "\n" 
+                sendMessage += "company name : " + companies_list[i][0] + ", There is a typo in the company name or the server is closed, but we estimated the industry. business type : " + companies_list[i][3] + "\n\n" 
         else : 
             sectors = companies_list[i][3]
             if sectors.lower() != "null" :
-                sendMessage += "회사 명 : " + companies_list[i][0] + ", 추정 국가 : " + companies_list[i][1] + ", 추정 업종 : " + sectors +"\n"
+                sendMessage += "company name : " + companies_list[i][0] + ", country : " + companies_list[i][1] + ", business type : " + sectors +"\n\n"
             else :
-                sendMessage += "회사 명 : " + companies_list[i][0] + ", 추정 국가 : " + companies_list[i][1] + ", 추정 업종 : gpt에서 추정 업종을 찾을 수 없습니다. \n"
+                sendMessage += "company name : " + companies_list[i][0] + ", country : " + companies_list[i][1] + ", business type : Estimated industry not found in gpt. \n\n"
             
                 
 
@@ -229,13 +233,13 @@ def main():
     )
     industry_list = ast.literal_eval(response.json()["choices"][0]["message"]["content"])
 
-    # 리스트를 pandas Series로 변환
+
     industry_series = pd.Series(industry_list)
 
-    # 각 산업 분야별 빈도수 계산
+
     industry_counts = industry_series.value_counts()
     
-    # 그래프 그리기
+
     matplotlib.use('Agg')
     plt.figure(figsize=(10,6))
     sns.barplot(x=industry_counts.index, y=industry_counts.values, alpha=0.8)
@@ -244,7 +248,7 @@ def main():
     plt.xlabel('industry sector', fontsize=12)
     plt.xticks(rotation=90)
 
-    # 그래프를 이미지 파일로 저장
+
     plt.savefig("industry_counts.png", dpi=300, bbox_inches='tight')
 
 
@@ -252,10 +256,10 @@ def main():
 
     country_series = pd.Series(country_list)
 
-    # 각 산업 분야별 빈도수 계산
+
     country_counts = country_series.value_counts()
 
-    # 그래프 그리기
+
     plt.figure(figsize=(10,6))
     sns.barplot(x=country_counts.index, y=country_counts.values, alpha=0.8)
     plt.title('Frequency by country')
@@ -263,7 +267,7 @@ def main():
     plt.xlabel('country', fontsize=12)
     plt.xticks(rotation=90)
 
-    # 그래프를 이미지 파일로 저장
+
     plt.savefig("country_counts.png", dpi=300, bbox_inches='tight')
     
 
@@ -286,11 +290,11 @@ def main():
                                     data = {"chat_id": chat_id, "caption": text},
                                     files = {"document": open(filepath, "rb")},
                     )
-    # 글자수 4096까지 제한이여서 그냥 아래와 같이 코드를 짬
+
     if use_telegram == "y":
         if len(sendMessage) > 4090 :
             save_string_to_txt('message.txt', sendMessage)
-            send_document( "글자수 제한이 넘어가서 txt파일로 전송합니다.", './message.txt')
+            send_document( "The character limit has been exceeded and is sent to the txt file.", './message.txt')
         else :
             send_message( sendMessage )
         send_document( "csv file", './companies_info.csv' )
