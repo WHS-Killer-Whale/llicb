@@ -174,7 +174,7 @@ def main():
     sectors_name = ""
     for i in range(0,len(name_country_list)):
         if len(name_country_list[i][2]) > 10 or not("https://" in name_country_list[i][2]) :
-            json_message = "Do you know about a company called "+str(name_country_list[i][0])+ " that is supposed to operate in the country of "+str(name_country_list[i][1])+"?" + "Part of the description of the entity is as follows. "+ "'"+ str(name_country_list[i][2])+ "'. "+ "Answer in words, not sentences. For example, if it's manufacturing, it's manufacturing, and if it's service, it's service. If you don't know, answer 'null'."
+            json_message = "Do you know about a company called "+str(name_country_list[i][0])+ " that is supposed to operate in the country of "+str(name_country_list[i][1])+"?" + "Part of the description of the entity is as follows. "+ "'"+ str(name_country_list[i][2])+ "'. "+ "Answer in words, not sentences. For example, if it's manufacturing, it's manufacturing, and if it's education, it's education.  If you don't know, answer 'null'."
             response = requests.post(
             "https://api.openai.com/v1/chat/completions",
             headers={"Authorization": f"Bearer {gpt_api_key}"},
@@ -218,14 +218,30 @@ def main():
             country_list.append(companies_list[i][1])
             if companies_list[i][3].lower() != "null" :
                 sectors_list.append(companies_list[i][3])
-                sectors_name += companies_list[i][3] + ", "
+                
     
     
     
 
     append_to_csv('companies_info.csv', name_country_list)
     
-    sectors_name += "Instead of grouping the industry into sub-categories like the list above, group the common parts into major categories, produce statistics, and explain them within 3 sentences including the statistics."
+
+
+    bigSectors = str(sectors_list) + " The Python list above lists the industries of the companies. Convert the values to the corresponding one of the thirteen large industries listed below. (Technology, healthcare, finance, manufacturing, retail, energy, real estate, transportation, Leisure, Food, Media, Education, Services) Your answer should be sent in the form of ['technology', 'healthcare', ... ,'energy'] without any other words. I'll convert your returned response to 'ast.literal_val' into a list and use it on Python, so make sure to send it in the form of ['Technology', 'Healthcare', ... , 'Energy'."
+
+    response = requests.post(
+    "https://api.openai.com/v1/chat/completions",
+    headers={"Authorization": f"Bearer {gpt_api_key}"},
+    json={"model": "gpt-4-1106-preview", "messages": [{"role": "user", "content": bigSectors}]},
+    )
+
+    industry_list = ast.literal_eval(response.json()["choices"][0]["message"]["content"])
+    
+
+    
+    for i in range(0,len(industry_list)) :
+        sectors_name += industry_list[i] + ", "
+        sectors_name += "',' We continue to list 13 industry group names. These listed names are the industry groups of ransomware victims. So count the number of each industry group and describe the characteristics of the number in 3 sentences."
     response = requests.post(
     "https://api.openai.com/v1/chat/completions",
     headers={"Authorization": f"Bearer {gpt_api_key}"},
@@ -235,17 +251,7 @@ def main():
 
     sendMessage += "GPT4's opinion : " + statistics + "\n"
 
-
-    bigSectors = str(sectors_list) + " The Python list above lists the industries of the companies. Convert the values to the corresponding one of the eight large industries listed below. (Technology, healthcare, finance, manufacturing, retail, energy, real estate, transportation, Leisure, Food, Media, Education) Your answer should be sent in the form of ['technology', 'healthcare', ... ,'energy'] without any other words."
-
-    response = requests.post(
-    "https://api.openai.com/v1/chat/completions",
-    headers={"Authorization": f"Bearer {gpt_api_key}"},
-    json={"model": "gpt-4-1106-preview", "messages": [{"role": "user", "content": bigSectors}]},
-    )
-    industry_list = ast.literal_eval(response.json()["choices"][0]["message"]["content"])
-
-
+    
     industry_series = pd.Series(industry_list)
 
 
