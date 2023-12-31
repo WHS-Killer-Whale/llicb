@@ -122,8 +122,9 @@ def main():
 
     while True:
         try:
-            comp_num = int(input("Enter the number of affected companies to obtain information (based on the order posted on the leak site) : \n"))
-            break
+            comp_num = int(input("Enter the number of affected companies to obtain information (based on the order posted on the leak site). Please enter a number greater than or equal to 10  : \n"))
+            if comp_num > 9 :
+                break
         except ValueError:
             print("This is not an integer. Please enter it again.")
     
