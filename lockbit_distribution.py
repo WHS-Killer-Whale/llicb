@@ -18,7 +18,6 @@ def get_ip_from_url(url):
         ip_address = socket.gethostbyname(url)
         return ip_address
     except Exception as e:
-        print(f"Error: {e}")
         return None
 
 
@@ -29,7 +28,6 @@ def get_country_from_ip(ip_address):
         response = reader.country(ip_address)
         return response.country.name
     except Exception as e:
-        print(f"Error: {e}")
         return None
 
 
